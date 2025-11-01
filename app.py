@@ -2,33 +2,63 @@ from flask import Flask, request, jsonify, render_template
 import joblib
 import pandas as pd
 import numpy as np
-import os  # ADD THIS
+import os
 
 app = Flask(__name__, template_folder="templates")
 
-# FIXED: Model loading with relative path
+# FIXED: Model loading with error handling for production
 try:
     current_dir = os.path.dirname(os.path.abspath(__file__))
     model_path = os.path.join(current_dir, "models", "Anemia_classifier_model.pkl")
+
+    # Check if model file exists
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"Model file not found at: {model_path}")
 
     model_package = joblib.load(model_path)
     model = model_package["model"]
     metadata = model_package["metadata"]
     reference_ranges = metadata["reference_ranges"]
     required_params = metadata["features"]
+
     print(f"✅ Model loaded successfully from: {model_path}")
+    print(f"✅ Features: {required_params}")
+    print(f"✅ Class names: {metadata['class_names']}")
 
 except Exception as e:
     print(f"❌ Failed to load model: {str(e)}")
-    # In production, we might want to exit if model can't load
-    raise e
+    # Create a simple model for testing if real model fails
+    print("⚠️  Using fallback mode - model predictions will not work")
+    model = None
+    metadata = {
+        "features": ["Age", "Sex", "RBC", "PCV", "MCV", "MCHC", "RDW", "HGB"],
+        "class_names": [
+            "No_Anemia",
+            "ACD_Moderate",
+            "ACD_Severe",
+            "Moderate_iron_deficiency_anemia",
+        ],
+        "reference_ranges": {
+            "HGB": [12.0, 16.0],
+            "RBC": [4.0, 5.5],
+            "PCV": [37.0, 47.0],
+            "MCV": [80.0, 100.0],
+            "MCHC": [32.0, 36.0],
+            "RDW": [11.5, 14.5],
+        },
+    }
+    reference_ranges = metadata["reference_ranges"]
+    required_params = metadata["features"]
 
 
 @app.route("/")
 def home():
     """Render main form page"""
     return render_template(
-        "index.html", parameters=required_params, reference_ranges=reference_ranges
+        "index.html",
+        parameters=required_params,
+        reference_ranges=reference_ranges,
+        model_loaded=model is not None,
     )
 
 
@@ -36,6 +66,15 @@ def home():
 def predict():
     """Handle prediction requests"""
     try:
+        # Check if model is loaded
+        if model is None:
+            return jsonify(
+                {
+                    "error": "Model not loaded",
+                    "message": "The ML model failed to load. Please check the server logs.",
+                }
+            ), 500
+
         # Validate request format
         if not request.is_json:
             return jsonify({"error": "Request must be JSON"}), 400
@@ -54,7 +93,7 @@ def predict():
             return jsonify({"error": f"Data conversion error: {str(e)}"}), 400
 
         # Convert critical columns to float
-        float_columns = ["PCV", "MCV", "MCHC", "RDW", "HGB", "RBC"]
+        float_columns = ["PCV", "MCV", "MCHC", "RDW", "HGB", "RBC", "Age"]
         for col in float_columns:
             if col in input_df.columns:
                 input_df[col] = pd.to_numeric(input_df[col], errors="coerce").astype(
@@ -129,17 +168,8 @@ def predict():
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
 
-def add_medical_features(df):
-    """Create clinical feature ratios"""
-    ratios = {"HgB/RBC": ("HGB", "RBC"), "RDW/MCV": ("RDW", "MCV")}
-    for new_feature, (num, den) in ratios.items():
-        if num in df.columns and den in df.columns:
-            df[new_feature] = df[num] / df[den]
-    return df
-
-
 def validate_parameters(df):
-    """With type safety"""
+    """Validate parameters against clinical reference ranges"""
     alerts = {}
     for param, (low, high) in reference_ranges.items():
         if param in df.columns:
@@ -151,19 +181,36 @@ def validate_parameters(df):
                         "normal_range": [float(low), float(high)],
                         "unit": metadata.get("units", {}).get(param, ""),
                     }
-            except:  # noqa: E722
+            except Exception:
                 alerts[param] = "Invalid numeric value"
     return alerts
 
 
+@app.route("/health")
+def health_check():
+    """Health check endpoint"""
+    return jsonify(
+        {
+            "status": "healthy" if model is not None else "degraded",
+            "model_loaded": model is not None,
+            "features": metadata["features"],
+            "class_names": metadata["class_names"],
+        }
+    )
+
+
 @app.errorhandler(404)
 def not_found(error):
-    return jsonify({"error": "Endpoint not found. Use POST /predict"}), 404
+    return jsonify(
+        {
+            "error": "Endpoint not found. Available endpoints: GET /, POST /predict, GET /health"
+        }
+    ), 404
 
 
 @app.errorhandler(405)
 def method_not_allowed(error):
-    return jsonify({"error": "Method not allowed. Use POST for /predict"}), 405
+    return jsonify({"error": "Method not allowed"}), 405
 
 
 # Production configuration
@@ -174,5 +221,6 @@ if __name__ == "__main__":
     print("🚀 Starting Anemia Classification Server...")
     print(f"📍 Port: {port}")
     print(f"🐛 Debug: {debug_mode}")
+    print(f"📊 Model status: {'✅ Loaded' if model is not None else '❌ Failed'}")
 
     app.run(host="0.0.0.0", port=port, debug=debug_mode)

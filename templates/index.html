@@ -1,568 +1,493 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anemia Type Classifier</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Anemia Classification System</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
     <style>
-        :root {
-            --primary: #3498db;
-            --primary-dark: #2980b9;
-            --secondary: #e74c3c;
-            --light: #f8f9fa;
-            --dark: #343a40;
-            --success: #2ecc71;
-            --warning: #f39c12;
-            --info: #3498db;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background-color: #f5f7fa;
-            color: #444;
-            line-height: 1.6;
-        }
-        
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            padding: 30px 0;
-            border-radius: 10px 10px 0 0;
-            margin-bottom: 30px;
-            box-shadow: var(--shadow);
-        }
-        
-        header h1 {
-            text-align: center;
-            font-size: 2.5rem;
-        }
-        
-        header p {
-            text-align: center;
-            opacity: 0.9;
-            margin-top: 10px;
-            font-size: 1.1rem;
-        }
-        
-        .main-content {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 30px;
-        }
-        
-        .form-container {
-            flex: 1;
-            min-width: 350px;
-            background-color: white;
-            border-radius: 10px;
-            padding: 25px;
-            box-shadow: var(--shadow);
-        }
-        
-        .form-container h2 {
-            color: var(--primary-dark);
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #eee;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--dark);
-        }
-        
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-            transition: border 0.3s ease;
-        }
-        
-        .form-group input:focus, .form-group select:focus {
-            border-color: var(--primary);
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-        }
-        
-        .form-group .input-help {
-            display: block;
-            font-size: 0.85rem;
-            color: #777;
-            margin-top: 5px;
-        }
-        
-        .form-group.col-2 {
-            display: flex;
-            gap: 15px;
-        }
-        
-        .form-group.col-2 > div {
-            flex: 1;
-        }
-        
-        button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 14px 25px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: block;
-            width: 100%;
-            margin-top: 30px;
-        }
-        
-        button:hover {
-            background-color: var(--primary-dark);
-            transform: translateY(-2px);
-        }
-        
-        .results-container {
-            flex: 1;
-            min-width: 350px;
-            background-color: white;
-            border-radius: 10px;
-            padding: 25px;
-            box-shadow: var(--shadow);
-        }
-        
-        .results-container h2 {
-            color: var(--primary-dark);
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #eee;
-        }
-        
-        .result-box {
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            background-color: #f8f9fa;
-            border-left: 5px solid var(--primary);
-        }
-        
-        .result-title {
-            font-weight: 600;
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-            color: var(--dark);
-        }
-        
-        .result-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--primary-dark);
-            margin-bottom: 15px;
-        }
-        
-        .result-description {
-            line-height: 1.6;
-            color: #555;
-        }
-        
-        .anemia-description {
-            margin-top: 20px;
-            padding: 20px;
-            background-color: #f1f9fe;
-            border-radius: 8px;
-            border-left: 5px solid var(--info);
-        }
-        
-        .anemia-description h3 {
-            color: var(--primary-dark);
-            margin-bottom: 10px;
-        }
-        
-        .normal-ranges {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 30px;
-        }
-        
-        .normal-ranges h3 {
-            color: var(--dark);
-            margin-bottom: 15px;
-        }
-        
-        .normal-ranges table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .normal-ranges th, .normal-ranges td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        .normal-ranges th {
-            font-weight: 600;
-            color: var(--dark);
-        }
-        
-        .warning {
-            color: var(--secondary);
-            font-size: 0.9rem;
-            margin-top: 30px;
-            padding: 15px;
-            border: 1px solid #fad7d3;
-            border-radius: 5px;
-            background-color: #fef5f4;
-        }
-        
-        footer {
-            text-align: center;
-            margin-top: 50px;
-            padding: 20px;
-            color: #777;
-            font-size: 0.9rem;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        @media (max-width: 768px) {
-            header {
-                padding: 20px 0;
-                margin-bottom: 20px;
-            }
-            
-            header h1 {
-                font-size: 2rem;
-            }
-            
-            .main-content {
-                flex-direction: column;
-            }
-            
-            .form-container, .results-container {
-                min-width: 100%;
-            }
-        }
-
-        /* Add new style for probabilities table */
-        .probability-table {
-            margin-top: 20px;
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .probability-table th,
-        .probability-table td {
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-            text-align: left;
-        }
-        .probability-table th {
-            background-color: #f8f9fa;
-        }
-        .probability-value {
-            color: var(--primary-dark);
-            font-weight: 500;
-        }
+      .loading {
+        display: none;
+      }
+      .parameter-info {
+        font-size: 0.875rem;
+        color: #6c757d;
+      }
+      .normal-range {
+        color: #28a745;
+        font-weight: 500;
+      }
+      .abnormal-range {
+        color: #dc3545;
+        font-weight: 500;
+      }
+      .confidence-bar {
+        height: 20px;
+        background: #e9ecef;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 5px;
+      }
+      .confidence-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #28a745, #007bff);
+        transition: width 0.5s ease;
+      }
+      .card {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border: none;
+        border-radius: 10px;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 25px;
+        padding: 12px 30px;
+        font-weight: 600;
+      }
     </style>
-</head>
-<body>
-    <header>
-        <div class="container">
-            <h1>Anemia Type Classifier</h1>
-            <p>Enter your blood test results to identify possible anemia type</p>
-        </div>
-    </header>
-    
-    <div class="container">
-        <div class="main-content">
-            <div class="form-container">
-                <h2>Enter Blood Test Parameters</h2>
-                <form id="anemiaForm">
-                    <div class="form-group col-2">
-                        <div>
-                            <label for="age">Age</label>
-                            <input type="number" id="age" name="age" min="1" max="120" required>
-                        </div>
-                        <div>
-                            <label for="sex">Sex</label>
-                            <select id="sex" name="sex" required>
-                                <option value="">Select</option>
-                                <option value="0">Female</option>
-                                <option value="1">Male</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="hgb">Hemoglobin (HGB) in g/dL</label>
-                        <input type="number" id="hgb" name="hgb" step="0.1" required>
-                        <span class="input-help">Normal range: 12.0-16.0 g/dL</span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="rbc">Red Blood Cell Count (RBC) in millions/μL</label>
-                        <input type="number" id="rbc" name="rbc" step="0.01" required>
-                        <span class="input-help">Normal range: 4.0-5.5 millions/μL</span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="pcv">Packed Cell Volume (PCV) in %</label>
-                        <input type="number" id="pcv" name="pcv" step="0.1" required>
-                        <span class="input-help">Normal range: 37.0-47.0 %</span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="mcv">Mean Corpuscular Volume (MCV) in fL</label>
-                        <input type="number" id="mcv" name="mcv" step="0.1" required>
-                        <span class="input-help">Normal range: 80.0-100.0 fL</span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="mchc">Mean Corpuscular Hemoglobin Concentration (MCHC) in g/dL</label>
-                        <input type="number" id="mchc" name="mchc" step="0.1" required>
-                        <span class="input-help">Normal range: 32.0-36.0 g/dL</span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="rdw">Red Cell Distribution Width (RDW) in %</label>
-                        <input type="number" id="rdw" name="rdw" step="0.1" required>
-                        <span class="input-help">Normal range: 11.5-14.5 %</span>
-                    </div>
-                    
-                    <button type="submit" id="analyzeBtn">Analyze Results</button>
-                </form>
-            </div>
-            
-            <div class="results-container">
-                <h2>Analysis Results</h2>
-                <div id="initialMessage">
-                    <p>Enter your blood test parameters to receive an analysis of your anemia type.</p>
-                    <p>This tool uses machine learning to classify different types of anemia based on your complete blood count (CBC) results.</p>
-                    
-                    <div class="normal-ranges">
-                        <h3>Normal Reference Ranges</h3>
-                        <table>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Reference Range</th>
-                            </tr>
-                            <tr>
-                                <td>Hemoglobin (HGB)</td>
-                                <td>12.0-16.0 g/dL</td>
-                            </tr>
-                            <tr>
-                                <td>Red Blood Cell Count (RBC)</td>
-                                <td>4.0-5.5 millions/μL</td>
-                            </tr>
-                            <tr>
-                                <td>Packed Cell Volume (PCV)</td>
-                                <td>37.0-47.0 %</td>
-                            </tr>
-                            <tr>
-                                <td>Mean Corpuscular Volume (MCV)</td>
-                                <td>80.0-100.0 fL</td>
-                            </tr>
-                            <tr>
-                                <td>Mean Corpuscular Hemoglobin Concentration (MCHC)</td>
-                                <td>32.0-36.0 g/dL</td>
-                            </tr>
-                            <tr>
-                                <td>Red Cell Distribution Width (RDW)</td>
-                                <td>11.5-14.5 %</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-                
-                <div id="resultsContent" class="hidden">
-                    <div class="result-box">
-                        <div class="result-title">Anemia Type</div>
-                        <div class="result-value" id="anemiaTypeResult">No Anemia</div>
-                        <div class="result-description" id="anemiaDescription"></div>
-                    </div>
-                    
-                    <div class="probability-table-container">
-                        <h3 style="margin-top: 20px; color: var(--dark);">Prediction Confidence</h3>
-                        <table class="probability-table" id="probabilityTable"></table>
-                    </div>
+  </head>
+  <body>
+    <div class="container mt-4">
+      <!-- Header -->
+      <div class="text-center mb-4">
+        <h1 class="display-4">🩸 Anemia Classification System</h1>
+        <p class="lead">
+          AI-powered classification of anemia types using Complete Blood Count
+          parameters
+        </p>
+      </div>
 
-                    <div class="anemia-description" id="detailedDescription">
-                        <h3>What This Means</h3>
-                        <p id="detailedContent"></p>
-                    </div>
-                    
-                    <div class="warning">
-                        <strong>Important:</strong> This tool is for educational purposes only and should not replace professional medical advice. Please consult with a healthcare provider for proper diagnosis and treatment.
-                    </div>
-                </div>
-            </div>
+      <!-- Model Status -->
+      {% if model_loaded %}
+      <div class="alert alert-success d-flex align-items-center">
+        <span class="fs-4">✅</span>
+        <div class="ms-3">
+          <h5 class="alert-heading mb-1">ML Model Loaded Successfully</h5>
+          <p class="mb-0">
+            The system is ready to analyze blood parameters and classify anemia
+            types.
+          </p>
         </div>
+      </div>
+      {% else %}
+      <div class="alert alert-warning d-flex align-items-center">
+        <span class="fs-4">⚠️</span>
+        <div class="ms-3">
+          <h5 class="alert-heading mb-1">ML Model Not Loaded</h5>
+          <p class="mb-0">
+            Predictions will not work. Please check the server logs for details.
+          </p>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="row">
+        <!-- Input Form -->
+        <div class="col-lg-6">
+          <div class="card">
+            <div class="card-header bg-primary text-white">
+              <h5 class="mb-0">📋 Patient Parameters</h5>
+            </div>
+            <div class="card-body">
+              <form id="prediction-form">
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="Age" class="form-label fw-bold">Age</label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="Age"
+                        name="Age"
+                        step="1"
+                        min="0"
+                        max="120"
+                        required
+                      />
+                      <div class="parameter-info">Patient age in years</div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="Sex" class="form-label fw-bold">Sex</label>
+                      <select class="form-control" id="Sex" name="Sex" required>
+                        <option value="">Select Gender</option>
+                        <option value="0">Female</option>
+                        <option value="1">Male</option>
+                      </select>
+                      <div class="parameter-info">Biological sex</div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="RBC" class="form-label fw-bold"
+                        >RBC Count</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="RBC"
+                        name="RBC"
+                        step="0.1"
+                        min="1"
+                        max="10"
+                        required
+                      />
+                      <div class="parameter-info">
+                        Normal range:
+                        <span class="normal-range"
+                          >4.0 - 5.5 million cells/μL</span
+                        >
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="HGB" class="form-label fw-bold"
+                        >Hemoglobin (HGB)</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="HGB"
+                        name="HGB"
+                        step="0.1"
+                        min="5"
+                        max="20"
+                        required
+                      />
+                      <div class="parameter-info">
+                        Normal range:
+                        <span class="normal-range">12.0 - 16.0 g/dL</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="PCV" class="form-label fw-bold"
+                        >Packed Cell Volume (PCV)</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="PCV"
+                        name="PCV"
+                        step="0.1"
+                        min="20"
+                        max="60"
+                        required
+                      />
+                      <div class="parameter-info">
+                        Normal range:
+                        <span class="normal-range">37.0 - 47.0%</span>
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="MCV" class="form-label fw-bold"
+                        >Mean Corpuscular Volume (MCV)</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="MCV"
+                        name="MCV"
+                        step="0.1"
+                        min="50"
+                        max="120"
+                        required
+                      />
+                      <div class="parameter-info">
+                        Normal range:
+                        <span class="normal-range">80.0 - 100.0 fL</span>
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="MCHC" class="form-label fw-bold"
+                        >Mean Corpuscular Hemoglobin Concentration (MCHC)</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="MCHC"
+                        name="MCHC"
+                        step="0.1"
+                        min="25"
+                        max="40"
+                        required
+                      />
+                      <div class="parameter-info">
+                        Normal range:
+                        <span class="normal-range">32.0 - 36.0 g/dL</span>
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="RDW" class="form-label fw-bold"
+                        >Red Cell Distribution Width (RDW)</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="RDW"
+                        name="RDW"
+                        step="0.1"
+                        min="10"
+                        max="20"
+                        required
+                      />
+                      <div class="parameter-info">
+                        Normal range:
+                        <span class="normal-range">11.5 - 14.5%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 mt-3">
+                  🎯 Classify Anemia
+                </button>
+              </form>
+
+              <!-- Loading Indicator -->
+              <div id="loading" class="loading text-center mt-4">
+                <div
+                  class="spinner-border text-primary"
+                  style="width: 3rem; height: 3rem"
+                  role="status"
+                >
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3 fs-5">Analyzing blood parameters...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="col-lg-6">
+          <div class="card h-100">
+            <div class="card-header bg-success text-white">
+              <h5 class="mb-0">📊 Prediction Results</h5>
+            </div>
+            <div class="card-body">
+              <div id="result" style="display: none">
+                <div class="text-center mb-4">
+                  <h4 id="prediction-text" class="fw-bold"></h4>
+                </div>
+
+                <div id="confidence-scores" class="mb-4">
+                  <h6>Confidence Scores:</h6>
+                  <div id="confidence-bars"></div>
+                </div>
+
+                <div id="warnings" class="mb-4"></div>
+
+                <div id="model-info" class="mt-4 p-3 bg-light rounded">
+                  <h6>Model Information</h6>
+                  <small class="text-muted" id="model-metadata"></small>
+                </div>
+              </div>
+
+              <div
+                id="error"
+                class="alert alert-danger mt-3"
+                style="display: none"
+              ></div>
+
+              <!-- Default State -->
+              <div id="default-state" class="text-center text-muted">
+                <div class="py-5">
+                  <span style="font-size: 4rem">🔬</span>
+                  <h5 class="mt-3">Enter Patient Parameters</h5>
+                  <p>
+                    Fill out the form to get an AI-powered anemia classification
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Information Section -->
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header bg-info text-white">
+              <h5 class="mb-0">ℹ️ About This System</h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <h6>Supported Conditions</h6>
+                  <ul>
+                    <li>
+                      <strong>Anemia Types:</strong> Microcytic, Normocytic,
+                      Macrocytic
+                    </li>
+                    <li><strong>Severity Levels:</strong> Moderate, Severe</li>
+                    <li>
+                      <strong>Blood Disorders:</strong> Thalassemia, Iron
+                      Deficiency, Aplastic Anemia
+                    </li>
+                    <li>
+                      <strong>Additional Conditions:</strong> Infection,
+                      Thrombocytopenia, Polycythemia
+                    </li>
+                  </ul>
+                </div>
+                <div class="col-md-6">
+                  <h6>How It Works</h6>
+                  <p>
+                    This system uses advanced machine learning algorithms
+                    trained on clinical data to classify anemia types based on
+                    standard Complete Blood Count (CBC) parameters.
+                  </p>
+                  <div class="alert alert-warning">
+                    <strong>Note:</strong> This tool is for educational and
+                    research purposes. Always consult healthcare professionals
+                    for medical diagnosis.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    
-    <footer>
-        <div class="container">
-            <p>© 2025 Anemia Type Classifier | Developed using machine learning algorithms for educational purposes only</p>
-        </div>
-    </footer>
 
-    <script>// Replace the classifyAnemia function with an API call
-async function classifyAnemia(formData) {
-    const data = {
-        'Age': parseFloat(formData.age),
-        'Sex': parseInt(formData.sex),
-        'HGB': parseFloat(formData.hgb),
-        'RBC': parseFloat(formData.rbc),
-        'PCV': parseFloat(formData.pcv),
-        'MCV': parseFloat(formData.mcv),
-        'MCHC': parseFloat(formData.mchc),
-        'RDW': parseFloat(formData.rdw)
-    };
+    <script>
+      document
+        .getElementById("prediction-form")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
 
-    try {
-        const response = await fetch('/predict', {
-            method: 'POST',
+          const formData = new FormData(this);
+          const data = Object.fromEntries(formData.entries());
+
+          // Convert numeric fields
+          data.Age = parseFloat(data.Age);
+          data.Sex = parseInt(data.Sex);
+          data.RBC = parseFloat(data.RBC);
+          data.HGB = parseFloat(data.HGB);
+          data.PCV = parseFloat(data.PCV);
+          data.MCV = parseFloat(data.MCV);
+          data.MCHC = parseFloat(data.MCHC);
+          data.RDW = parseFloat(data.RDW);
+
+          // Show loading, hide previous results and errors
+          document.getElementById("loading").style.display = "block";
+          document.getElementById("result").style.display = "none";
+          document.getElementById("default-state").style.display = "none";
+          document.getElementById("error").style.display = "none";
+
+          fetch("/predict", {
+            method: "POST",
             headers: {
-                'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              document.getElementById("loading").style.display = "none";
+
+              if (data.error) {
+                document.getElementById("error").style.display = "block";
+                document.getElementById("error").textContent = data.error;
+                document.getElementById("default-state").style.display =
+                  "block";
+              } else {
+                // Display prediction
+                document.getElementById(
+                  "prediction-text"
+                ).textContent = `Diagnosis: ${data.prediction}`;
+
+                // Display confidence scores if available
+                if (data.confidence_scores) {
+                  let confidenceHTML = '<div class="confidence-bars">';
+                  for (const [condition, score] of Object.entries(
+                    data.confidence_scores
+                  )) {
+                    const percentage = (score * 100).toFixed(1);
+                    const isPrediction = condition === data.prediction;
+                    confidenceHTML += `
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="${
+                                      isPrediction ? "fw-bold text-primary" : ""
+                                    }">${condition}</span>
+                                    <span class="${
+                                      isPrediction ? "fw-bold text-primary" : ""
+                                    }">${percentage}%</span>
+                                </div>
+                                <div class="confidence-bar mb-3">
+                                    <div class="confidence-fill" style="width: ${percentage}%"></div>
+                                </div>
+                            `;
+                  }
+                  confidenceHTML += "</div>";
+                  document.getElementById("confidence-bars").innerHTML =
+                    confidenceHTML;
+                } else {
+                  document.getElementById("confidence-scores").innerHTML = "";
+                }
+
+                // Display warnings if any
+                if (data.warning) {
+                  let warningsHTML =
+                    '<div class="alert alert-warning"><h6>⚠️ Clinical Alerts</h6><ul>';
+                  if (data.abnormal_values) {
+                    for (const [param, info] of Object.entries(
+                      data.abnormal_values
+                    )) {
+                      warningsHTML += `<li><strong>${param}:</strong> ${info.value} (Normal: ${info.normal_range[0]} - ${info.normal_range[1]} ${info.unit})</li>`;
+                    }
+                  }
+                  warningsHTML += "</ul></div>";
+                  document.getElementById("warnings").innerHTML = warningsHTML;
+                } else {
+                  document.getElementById("warnings").innerHTML = "";
+                }
+
+                // Display model metadata
+                if (data.model_metadata) {
+                  const metadata = data.model_metadata;
+                  document.getElementById(
+                    "model-metadata"
+                  ).textContent = `Version ${metadata.version} | ${metadata.features_used.length} parameters analyzed`;
+                }
+
+                document.getElementById("result").style.display = "block";
+              }
+            })
+            .catch((error) => {
+              document.getElementById("loading").style.display = "none";
+              document.getElementById("error").style.display = "block";
+              document.getElementById("error").textContent =
+                "Network error: " + error.message;
+              document.getElementById("default-state").style.display = "block";
+            });
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return await response.json();
-        //const result = await response.json();
-        //console.log(result);  // Add this to log the result
+      // Add real-time validation for input ranges
+      document.querySelectorAll('input[type="number"]').forEach((input) => {
+        input.addEventListener("blur", function () {
+          const value = parseFloat(this.value);
+          const normalRanges = {
+            RBC: [4.0, 5.5],
+            HGB: [12.0, 16.0],
+            PCV: [37.0, 47.0],
+            MCV: [80.0, 100.0],
+            MCHC: [32.0, 36.0],
+            RDW: [11.5, 14.5],
+          };
 
-        //return result.prediction;
-    } catch (error) {
-        console.error('Error getting prediction:', error);
-        return "Error: Could not get prediction";
-    }
-}
-
-
-// Then update the form submission handler to use this async function
-document.getElementById("anemiaForm").addEventListener("submit", async function(e) {
-    e.preventDefault();
-    
-    // Show loading indicator
-    document.getElementById("analyzeBtn").textContent = "Analyzing...";
-    document.getElementById("analyzeBtn").disabled = true;
-    
-    // Get form values as a FormData object
-    const formData = new FormData(this);
-    
-    // Get prediction
-    const result = await classifyAnemia(Object.fromEntries(formData));
-    if (result.error) {
-        alert(result.error);
-        return;
-    }
-    const anemiaDescriptions = {
-    "No_Anemia": {
-        short: "Normal Blood Parameters",
-        detailed: "All hematological values are within normal ranges. No evidence of anemia present. Maintain a balanced diet rich in iron and vitamins to prevent future deficiencies.",
-        clinical_note: "Regular CBC monitoring recommended as part of routine health checkups."
-    },
-    "ACD_Moderate": {
-        short: "Anemia of Chronic Disease (Moderate)",
-        detailed: "Chronic inflammation-induced anemia with hemoglobin 10-12 g/dL (women) or 11-13 g/dL (men). Commonly seen in chronic infections, autoimmune disorders, or cancer. Characterized by inadequate iron utilization despite normal stores.",
-        clinical_note: "Focus on treating underlying condition. Iron supplementation not recommended."
-    },
-    "ACD_Severe": {
-        short: "Anemia of Chronic Disease (Severe)",
-        detailed: "Severe chronic inflammation anemia with hemoglobin <10 g/dL (women) or <11 g/dL (men). Requires urgent evaluation for occult blood loss or superimposed nutritional deficiencies.",
-        clinical_note: "Consider erythropoiesis-stimulating agents in select cases."
-    },
-    "Severe_thalassemia": {
-        short: "Beta-Thalassemia Major",
-        detailed: "Severe genetic hemoglobin disorder requiring regular blood transfusions (Hb <7 g/dL). Presents with hepatosplenomegaly and growth retardation. RBC morphology shows microcytic hypochromic cells with target cells.",
-        clinical_note: "Requires lifelong transfusion and iron chelation therapy."
-    },
-    "Moderate_thalassemia": {
-        short: "Thalassemia Intermedia",
-        detailed: "Moderate hemoglobinopathy (Hb 7-10 g/dL) with periodic transfusion needs. May present with jaundice and mild splenomegaly. MCV typically <75 fL with elevated HbA2 on electrophoresis.",
-        clinical_note: "Monitor for iron overload and consider hydroxyurea therapy."
-    },
-    "Severe_iron_deficiency_anemia": {
-        short: "Iron Deficiency Anemia (Severe)",
-        detailed: "Critical iron deficiency with Hb <7 g/dL. Marked microcytosis (MCV <70 fL) and hypochromia. Often presents with koilonychia, pica, and fatigue. Requires urgent parenteral iron therapy.",
-        clinical_note: "Investigate for GI bleeding in adults."
-    },
-    "Moderate_iron_deficiency_anemia": {
-        short: "Iron Deficiency Anemia (Moderate)",
-        detailed: "Moderate iron deficiency (Hb 7-12 g/dL women, 7-13 g/dL men). Typical findings include low ferritin (<30 ng/mL), high TIBC, and microcytic indices. Oral iron supplementation indicated.",
-        clinical_note: "Concurrent vitamin C enhances iron absorption."
-    },
-    "Normocytic_anemia_Unknown": {
-        short: "Normocytic Anemia of Undetermined Origin",
-        detailed: "Hemoglobin <13 g/dL (men) or <12 g/dL (women) with normal MCV (80-100 fL). Differential includes early iron deficiency, chronic kidney disease, or bone marrow disorders.",
-        clinical_note: "Requires reticulocyte count and renal function tests."
-    },
-    "Moderate_aplastic_anemia": {
-        short: "Non-Severe Aplastic Anemia",
-        detailed: "Bone marrow failure with moderate pancytopenia (neutrophils >500/μL, platelets >20,000/μL). May be idiopathic or drug-induced. Cellularity <30% on bone marrow biopsy.",
-        clinical_note: "Immunosuppressive therapy with ATG+CsA recommended."
-    },
-    "Severe_aplastic_anemia": {
-        short: "Severe Aplastic Anemia",
-        detailed: "Life-threatening bone marrow failure (neutrophils <500/μL, platelets <20,000/μL). Requires immediate hospitalization. Cellularity <25% with fat replacement in marrow.",
-        clinical_note: "Definitive treatment is hematopoietic stem cell transplant."
-    }
-    };
-    // Update UI with results
-    document.getElementById("initialMessage").classList.add("hidden");
-    document.getElementById("resultsContent").classList.remove("hidden");
-    document.getElementById("anemiaTypeResult").textContent = result.prediction.replace(/_/g, " ");
-    document.getElementById("anemiaDescription").textContent = anemiaDescriptions[result.prediction].short;
-    document.getElementById("detailedContent").textContent = anemiaDescriptions[result.prediction].detailed;
-    
-     // Update probability table
-    const table = document.getElementById("probabilityTable");
-    table.innerHTML = `<tr>
-        <th>Condition</th>
-        <th>Probability</th>
-    </tr>`;
-        
-    if (result.confidence_scores && result.confidence_scores[result.prediction] != null) {
-        const prob = result.confidence_scores[result.prediction];
-        const row = table.insertRow();
-        row.innerHTML = `
-            <td>${result.prediction.replace(/_/g, " ")}</td>
-            <td class="probability-value">
-                ${(prob * 100).toFixed(1)}%
-            </td>`;
-    }
-    // Reset button
-    document.getElementById("analyzeBtn").textContent = "Analyze Results";
-    document.getElementById("analyzeBtn").disabled = false;
-    
-    // Scroll to results
-    document.querySelector(".results-container").scrollIntoView({ behavior: 'smooth' });
-});
+          if (normalRanges[this.id] && value) {
+            const [min, max] = normalRanges[this.id];
+            if (value < min || value > max) {
+              this.classList.add("is-invalid");
+            } else {
+              this.classList.remove("is-invalid");
+            }
+          }
+        });
+      });
     </script>
-</body>
+  </body>
 </html>
