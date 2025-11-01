@@ -21,4 +21,12 @@ This project implements a multi-label classification system that can identify:
 -   **Comprehensive Evaluation**: Multiple metrics and statistical testing
 -   **Clinical Validation**: Reference range checking and alerts
 
-## 📁 Project Structure
+
+## Installation
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/anemia-classification.git
+cd anemia-classification
+
+# Install dependencies
+pip install -r requirements.txt
