@@ -2,15 +2,26 @@ from flask import Flask, request, jsonify, render_template
 import joblib
 import pandas as pd
 import numpy as np
+import os  # ADD THIS
 
 app = Flask(__name__, template_folder="templates")
 
-# Load model package
-model_package = joblib.load("D:\Project\AnemiaClassification\models\Anemia_classifier_model.pkl")
-model = model_package["model"]
-metadata = model_package["metadata"]
-reference_ranges = metadata["reference_ranges"]
-required_params = metadata["features"]
+# FIXED: Model loading with relative path
+try:
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    model_path = os.path.join(current_dir, "models", "Anemia_classifier_model.pkl")
+
+    model_package = joblib.load(model_path)
+    model = model_package["model"]
+    metadata = model_package["metadata"]
+    reference_ranges = metadata["reference_ranges"]
+    required_params = metadata["features"]
+    print(f"✅ Model loaded successfully from: {model_path}")
+
+except Exception as e:
+    print(f"❌ Failed to load model: {str(e)}")
+    # In production, we might want to exit if model can't load
+    raise e
 
 
 @app.route("/")
@@ -37,16 +48,13 @@ def predict():
             return jsonify({"error": f"Missing parameters: {missing}"}), 400
 
         # Create input DataFrame
-        # Create input DataFrame
         try:
-            # Always use this pattern
             input_df = pd.DataFrame([data])[metadata["features"]]
         except Exception as e:
             return jsonify({"error": f"Data conversion error: {str(e)}"}), 400
-        # After creating input_df:
-        # Force correct column order
+
         # Convert critical columns to float
-        float_columns = ["PCV", "MCV", "MCHC", "RDW", "HGB", "RBC"]  # Expand as needed
+        float_columns = ["PCV", "MCV", "MCHC", "RDW", "HGB", "RBC"]
         for col in float_columns:
             if col in input_df.columns:
                 input_df[col] = pd.to_numeric(input_df[col], errors="coerce").astype(
@@ -68,9 +76,7 @@ def predict():
 
         # Ensure correct feature order and presence
         try:
-            # Reorder columns FIRST
-            input_processed = input_df[metadata["features"]]  # Critical change
-            # Then check for missing features
+            input_processed = input_df[metadata["features"]]
             missing = [
                 f for f in metadata["features"] if f not in input_processed.columns
             ]
@@ -79,11 +85,7 @@ def predict():
         except Exception as e:
             return jsonify({"error": f"Feature validation failed: {str(e)}"}), 400
 
-        print("Model Features:", metadata["features"])
-        # Should show this EXACT order:
-        # ['Age', 'Sex', 'RBC', 'PCV', 'MCV', 'MCHC', 'RDW', 'HGB']
         # Make prediction
-        # In the prediction block:
         try:
             prediction_idx = model.predict(input_processed)[0]
             prediction = metadata["class_names"][prediction_idx]
@@ -130,7 +132,6 @@ def predict():
 def add_medical_features(df):
     """Create clinical feature ratios"""
     ratios = {"HgB/RBC": ("HGB", "RBC"), "RDW/MCV": ("RDW", "MCV")}
-
     for new_feature, (num, den) in ratios.items():
         if num in df.columns and den in df.columns:
             df[new_feature] = df[num] / df[den]
@@ -165,5 +166,13 @@ def method_not_allowed(error):
     return jsonify({"error": "Method not allowed. Use POST for /predict"}), 405
 
 
+# Production configuration
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    debug_mode = os.environ.get("FLASK_DEBUG", "False").lower() == "true"
+
+    print("🚀 Starting Anemia Classification Server...")
+    print(f"📍 Port: {port}")
+    print(f"🐛 Debug: {debug_mode}")
+
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)
