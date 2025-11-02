@@ -1,16 +1,22 @@
-# ------------ Dockerfile ------------
-FROM python:3.9
+# Base image
+FROM python:3.9-slim
 
-WORKDIR /code
+# Prevents Python from writing .pyc files
+ENV PYTHONDONTWRITEBYTECODE=1
+# Ensures output is sent straight to the terminal
+ENV PYTHONUNBUFFERED=1
 
-# Copy everything
-COPY . /code
+# Set working directory
+WORKDIR /app
+
+# Copy all project files
+COPY . /app
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose default Hugging Face port
-ENV PORT 7860
+# Expose the port for the app
+EXPOSE 7860
 
-# Run Flask using gunicorn
-CMD ["gunicorn", "-b", "0.0.0.0:7860", "app:app"]
+# Command to run the app
+CMD ["gunicorn", "--bind", "0.0.0.0:7860", "app:app"]
