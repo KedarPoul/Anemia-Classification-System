@@ -48,6 +48,15 @@
         padding: 12px 30px;
         font-weight: 600;
       }
+
+      /* ✅ Remove red alert outlines on invalid input */
+      input:invalid,
+      input:focus:invalid,
+      select:invalid,
+      select:focus:invalid {
+        border-color: #ced4da !important;
+        box-shadow: none !important;
+      }
     </style>
   </head>
   <body>
@@ -61,29 +70,7 @@
         </p>
       </div>
 
-      <!-- Model Status -->
-      {% if model_loaded %}
-      <div class="alert alert-success d-flex align-items-center">
-        <span class="fs-4">✅</span>
-        <div class="ms-3">
-          <h5 class="alert-heading mb-1">ML Model Loaded Successfully</h5>
-          <p class="mb-0">
-            The system is ready to analyze blood parameters and classify anemia
-            types.
-          </p>
-        </div>
-      </div>
-      {% else %}
-      <div class="alert alert-warning d-flex align-items-center">
-        <span class="fs-4">⚠️</span>
-        <div class="ms-3">
-          <h5 class="alert-heading mb-1">ML Model Not Loaded</h5>
-          <p class="mb-0">
-            Predictions will not work. Please check the server logs for details.
-          </p>
-        </div>
-      </div>
-      {% endif %}
+      <!-- Removed ML model status section -->
 
       <div class="row">
         <!-- Input Form -->
@@ -93,7 +80,7 @@
               <h5 class="mb-0">📋 Patient Parameters</h5>
             </div>
             <div class="card-body">
-              <form id="prediction-form">
+              <form id="prediction-form" novalidate>
                 <div class="row">
                   <div class="col-md-6">
                     <div class="mb-3">
@@ -160,6 +147,7 @@
                       </div>
                     </div>
                   </div>
+
                   <div class="col-md-6">
                     <div class="mb-3">
                       <label for="PCV" class="form-label fw-bold"
@@ -239,6 +227,7 @@
                     </div>
                   </div>
                 </div>
+
                 <button type="submit" class="btn btn-primary w-100 mt-3">
                   🎯 Classify Anemia
                 </button>
@@ -290,7 +279,6 @@
                 style="display: none"
               ></div>
 
-              <!-- Default State -->
               <div id="default-state" class="text-center text-muted">
                 <div class="py-5">
                   <span style="font-size: 4rem">🔬</span>
@@ -326,10 +314,6 @@
                       <strong>Blood Disorders:</strong> Thalassemia, Iron
                       Deficiency, Aplastic Anemia
                     </li>
-                    <li>
-                      <strong>Additional Conditions:</strong> Infection,
-                      Thrombocytopenia, Polycythemia
-                    </li>
                   </ul>
                 </div>
                 <div class="col-md-6">
@@ -361,7 +345,6 @@
           const formData = new FormData(this);
           const data = Object.fromEntries(formData.entries());
 
-          // Convert numeric fields
           data.Age = parseFloat(data.Age);
           data.Sex = parseInt(data.Sex);
           data.RBC = parseFloat(data.RBC);
@@ -371,7 +354,6 @@
           data.MCHC = parseFloat(data.MCHC);
           data.RDW = parseFloat(data.RDW);
 
-          // Show loading, hide previous results and errors
           document.getElementById("loading").style.display = "block";
           document.getElementById("result").style.display = "none";
           document.getElementById("default-state").style.display = "none";
@@ -379,9 +361,7 @@
 
           fetch("/predict", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
           })
             .then((response) => response.json())
@@ -394,58 +374,34 @@
                 document.getElementById("default-state").style.display =
                   "block";
               } else {
-                // Display prediction
                 document.getElementById(
                   "prediction-text"
                 ).textContent = `Diagnosis: ${data.prediction}`;
 
-                // Display confidence scores if available
                 if (data.confidence_scores) {
-                  let confidenceHTML = '<div class="confidence-bars">';
+                  let confidenceHTML = "";
                   for (const [condition, score] of Object.entries(
                     data.confidence_scores
                   )) {
                     const percentage = (score * 100).toFixed(1);
                     const isPrediction = condition === data.prediction;
                     confidenceHTML += `
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="${
-                                      isPrediction ? "fw-bold text-primary" : ""
-                                    }">${condition}</span>
-                                    <span class="${
-                                      isPrediction ? "fw-bold text-primary" : ""
-                                    }">${percentage}%</span>
-                                </div>
-                                <div class="confidence-bar mb-3">
-                                    <div class="confidence-fill" style="width: ${percentage}%"></div>
-                                </div>
-                            `;
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="${
+                        isPrediction ? "fw-bold text-primary" : ""
+                      }">${condition}</span>
+                      <span class="${
+                        isPrediction ? "fw-bold text-primary" : ""
+                      }">${percentage}%</span>
+                    </div>
+                    <div class="confidence-bar mb-3">
+                      <div class="confidence-fill" style="width: ${percentage}%"></div>
+                    </div>`;
                   }
-                  confidenceHTML += "</div>";
                   document.getElementById("confidence-bars").innerHTML =
                     confidenceHTML;
-                } else {
-                  document.getElementById("confidence-scores").innerHTML = "";
                 }
 
-                // Display warnings if any
-                if (data.warning) {
-                  let warningsHTML =
-                    '<div class="alert alert-warning"><h6>⚠️ Clinical Alerts</h6><ul>';
-                  if (data.abnormal_values) {
-                    for (const [param, info] of Object.entries(
-                      data.abnormal_values
-                    )) {
-                      warningsHTML += `<li><strong>${param}:</strong> ${info.value} (Normal: ${info.normal_range[0]} - ${info.normal_range[1]} ${info.unit})</li>`;
-                    }
-                  }
-                  warningsHTML += "</ul></div>";
-                  document.getElementById("warnings").innerHTML = warningsHTML;
-                } else {
-                  document.getElementById("warnings").innerHTML = "";
-                }
-
-                // Display model metadata
                 if (data.model_metadata) {
                   const metadata = data.model_metadata;
                   document.getElementById(
@@ -464,30 +420,6 @@
               document.getElementById("default-state").style.display = "block";
             });
         });
-
-      // Add real-time validation for input ranges
-      document.querySelectorAll('input[type="number"]').forEach((input) => {
-        input.addEventListener("blur", function () {
-          const value = parseFloat(this.value);
-          const normalRanges = {
-            RBC: [4.0, 5.5],
-            HGB: [12.0, 16.0],
-            PCV: [37.0, 47.0],
-            MCV: [80.0, 100.0],
-            MCHC: [32.0, 36.0],
-            RDW: [11.5, 14.5],
-          };
-
-          if (normalRanges[this.id] && value) {
-            const [min, max] = normalRanges[this.id];
-            if (value < min || value > max) {
-              this.classList.add("is-invalid");
-            } else {
-              this.classList.remove("is-invalid");
-            }
-          }
-        });
-      });
     </script>
   </body>
 </html>
