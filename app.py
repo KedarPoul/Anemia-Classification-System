@@ -1,5 +1,12 @@
 from flask import Flask, request, jsonify, render_template
-import joblib, pandas as pd, numpy as np, os, sys, sklearn, xgboost as xgb, lightgbm as lgb
+import joblib
+import pandas as pd
+import numpy as np
+import os
+import sys
+import sklearn
+import xgboost as xgb
+import lightgbm as lgb
 
 app = Flask(__name__, template_folder="templates")
 
