@@ -1,0 +1,16 @@
+# ------------ Dockerfile ------------
+FROM python:3.9
+
+WORKDIR /code
+
+# Copy everything
+COPY . /code
+
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Expose default Hugging Face port
+ENV PORT 7860
+
+# Run Flask using gunicorn
+CMD ["gunicorn", "-b", "0.0.0.0:7860", "app:app"]
