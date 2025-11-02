@@ -3,8 +3,20 @@ import joblib
 import pandas as pd
 import numpy as np
 import os
+import sys
+import sklearn
+import xgboost as xgb
+import lightgbm as lgb
 
 app = Flask(__name__, template_folder="templates")
+
+# Print versions for debugging
+print(f"🐍 Python version: {sys.version}")
+print(f"📦 numpy version: {np.__version__}")
+print(f"📦 pandas version: {pd.__version__}")
+print(f"📦 scikit-learn version: {sklearn.__version__}")
+print(f"📦 xgboost version: {xgb.__version__}")
+print(f"📦 lightgbm version: {lgb.__version__}")
 
 # FIXED: Model loading with error handling for production
 try:
@@ -27,7 +39,7 @@ try:
 
 except Exception as e:
     print(f"❌ Failed to load model: {str(e)}")
-    # Create a simple model for testing if real model fails
+    # Create a simple fallback
     print("⚠️  Using fallback mode - model predictions will not work")
     model = None
     metadata = {
@@ -58,7 +70,7 @@ def home():
         "index.html",
         parameters=required_params,
         reference_ranges=reference_ranges,
-        model_loaded=model is not None,
+        model_loaded=(model is not None),
     )
 
 
@@ -66,7 +78,6 @@ def home():
 def predict():
     """Handle prediction requests"""
     try:
-        # Check if model is loaded
         if model is None:
             return jsonify(
                 {
@@ -75,24 +86,17 @@ def predict():
                 }
             ), 500
 
-        # Validate request format
         if not request.is_json:
             return jsonify({"error": "Request must be JSON"}), 400
 
         data = request.json
 
-        # Check for required parameters
         missing = [param for param in metadata["features"] if param not in data]
         if missing:
             return jsonify({"error": f"Missing parameters: {missing}"}), 400
 
-        # Create input DataFrame
-        try:
-            input_df = pd.DataFrame([data])[metadata["features"]]
-        except Exception as e:
-            return jsonify({"error": f"Data conversion error: {str(e)}"}), 400
+        input_df = pd.DataFrame([data])[metadata["features"]]
 
-        # Convert critical columns to float
         float_columns = ["PCV", "MCV", "MCHC", "RDW", "HGB", "RBC", "Age"]
         for col in float_columns:
             if col in input_df.columns:
@@ -100,11 +104,9 @@ def predict():
                     "float64"
                 )
 
-        # Handle potential conversion errors
         if input_df.isnull().any().any():
             return jsonify({"error": "Invalid numeric values detected"}), 400
 
-        # Validate against clinical reference ranges
         validation_errors = validate_parameters(input_df)
         alerts = {}
         if validation_errors:
@@ -113,18 +115,11 @@ def predict():
                 "abnormal_values": validation_errors,
             }
 
-        # Ensure correct feature order and presence
-        try:
-            input_processed = input_df[metadata["features"]]
-            missing = [
-                f for f in metadata["features"] if f not in input_processed.columns
-            ]
-            if missing:
-                return jsonify({"error": f"Missing parameters: {missing}"}), 400
-        except Exception as e:
-            return jsonify({"error": f"Feature validation failed: {str(e)}"}), 400
+        input_processed = input_df[metadata["features"]]
+        missing = [f for f in metadata["features"] if f not in input_processed.columns]
+        if missing:
+            return jsonify({"error": f"Missing parameters: {missing}"}), 400
 
-        # Make prediction
         try:
             prediction_idx = model.predict(input_processed)[0]
             prediction = metadata["class_names"][prediction_idx]
@@ -134,7 +129,6 @@ def predict():
             app.logger.error(f"Expected features: {metadata['features']}")
             return jsonify({"error": f"Prediction failed: {str(e)}"}), 500
 
-        # Build response
         response = {
             "prediction": prediction,
             "model_metadata": {
@@ -144,7 +138,6 @@ def predict():
             },
         }
 
-        # Add probabilities if available
         if hasattr(model, "predict_proba"):
             try:
                 proba = model.predict_proba(input_processed)[0]
@@ -157,7 +150,6 @@ def predict():
                 app.logger.error(f"Probability error: {str(e)}")
                 response["warning"] = "Confidence estimates unavailable"
 
-        # Include any validation alerts
         if alerts:
             response.update(alerts)
 
