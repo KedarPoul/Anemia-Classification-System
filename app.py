@@ -123,6 +123,7 @@ def health():
 
 # --------------------- Entry Point --------------------- #
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))  # Railway sets this automatically
-    print(f"🚀 Running on port {port} ...")
-    app.run(host="0.0.0.0", port=port, debug=False)
+    import os
+
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)

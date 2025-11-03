@@ -1,14 +1,14 @@
 # -----------------------------
-# Force a stable, supported Python version
+# Use a stable Python base image
 # -----------------------------
 FROM python:3.11-slim
 
-# Create a non-root user
+# Create a non-root user for security
 RUN useradd -m -u 1000 user
 USER user
 ENV PATH="/home/user/.local/bin:$PATH"
 
-# Set work directory
+# Set the working directory
 WORKDIR /app
 
 # -----------------------------
@@ -16,24 +16,26 @@ WORKDIR /app
 # -----------------------------
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgomp1 build-essential \
+    libgomp1 build-essential gcc g++ \
  && rm -rf /var/lib/apt/lists/*
 USER user
 
 # -----------------------------
-# Copy requirements and install
+# Copy requirements and install dependencies
 # -----------------------------
-COPY --chown=user requirements.txt .
+COPY --chown=user requirements.txt ./
 RUN pip install --upgrade pip setuptools wheel && \
     pip install --no-cache-dir -r requirements.txt
 
 # -----------------------------
-# Copy app source
+# Copy application source code
 # -----------------------------
 COPY --chown=user . .
 
 # -----------------------------
-# Expose port and launch
+# Expose port and run app
 # -----------------------------
 EXPOSE 8080
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "app:app"]
+
+# Use Railway's dynamic port ($PORT)
+CMD gunicorn --bind 0.0.0.0:$PORT app:app
