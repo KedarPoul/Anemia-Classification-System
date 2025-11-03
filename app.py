@@ -8,27 +8,28 @@ import sklearn
 import xgboost as xgb
 import lightgbm as lgb
 
+# --------------------- App Setup --------------------- #
 app = Flask(__name__, template_folder="templates")
 
-# --------------------- Setup Info --------------------- #
-print(f"🐍 Python version: {sys.version}")
-print(f"📦 numpy version: {np.__version__}")
-print(f"📦 pandas version: {pd.__version__}")
-print(f"📦 scikit-learn version: {sklearn.__version__}")
-print(f"📦 xgboost version: {xgb.__version__}")
-print(f"📦 lightgbm version: {lgb.__version__}")
+print("=== Environment Info ===")
+print(f"Python version: {sys.version}")
+print(f"numpy version: {np.__version__}")
+print(f"pandas version: {pd.__version__}")
+print(f"scikit-learn version: {sklearn.__version__}")
+print(f"xgboost version: {xgb.__version__}")
+print(f"lightgbm version: {lgb.__version__}")
+print("========================")
 
-# --------------------- Model Load --------------------- #
+# --------------------- Model Loading --------------------- #
 try:
     model_path = os.path.join("models", "Anemia_classifier_model.pkl")
     if not os.path.exists(model_path):
-        raise FileNotFoundError("Model file not found at expected path.")
+        raise FileNotFoundError(f"Model file not found: {model_path}")
 
     package = joblib.load(model_path)
-    model = package["model"]
-    metadata = package["metadata"]
+    model = package.get("model")
+    metadata = package.get("metadata", {})
 
-    # ✅ Backward compatibility
     metadata.setdefault(
         "reference_ranges",
         {
@@ -41,33 +42,32 @@ try:
         },
     )
 
-    reference_ranges = metadata["reference_ranges"]
-
     print("✅ Model loaded successfully!")
-    print(f"✅ Features: {metadata['features']}")
-    print(f"✅ Classes: {metadata['class_names']}")
+    print(f"✅ Features: {metadata.get('features', [])}")
+    print(f"✅ Classes: {metadata.get('class_names', [])}")
 
 except Exception as e:
-    print(f"❌ Model load failed: {e}")
-    model, metadata = None, {"features": [], "class_names": [], "reference_ranges": {}}
+    print(f"❌ Failed to load model: {e}")
+    model = None
+    metadata = {"features": [], "class_names": [], "reference_ranges": {}}
 
 # --------------------- Routes --------------------- #
 
 
 @app.route("/")
 def home():
-    """Main page"""
+    """Main web page"""
     return render_template(
         "index.html",
-        parameters=metadata["features"],
-        reference_ranges=metadata["reference_ranges"],
-        model_loaded=(model is not None),
+        parameters=metadata.get("features", []),
+        reference_ranges=metadata.get("reference_ranges", {}),
+        model_loaded=bool(model),
     )
 
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    """Handle prediction"""
+    """Handle prediction API call"""
     try:
         if model is None:
             return jsonify({"error": "Model not loaded"}), 500
@@ -80,12 +80,14 @@ def predict():
         if missing:
             return jsonify({"error": f"Missing parameters: {missing}"}), 400
 
+        # Convert to DataFrame and validate
         input_df = pd.DataFrame([data])[metadata["features"]]
         input_df = input_df.apply(pd.to_numeric, errors="coerce")
+
         if input_df.isnull().any().any():
             return jsonify({"error": "Invalid numeric values detected"}), 400
 
-        prediction_idx = model.predict(input_df)[0]
+        prediction_idx = int(model.predict(input_df)[0])
         prediction = metadata["class_names"][prediction_idx]
 
         response = {
@@ -107,7 +109,8 @@ def predict():
 
 
 @app.route("/health")
-def health_check():
+def health():
+    """Health check for Railway"""
     return jsonify(
         {
             "status": "healthy" if model else "degraded",
@@ -118,9 +121,8 @@ def health_check():
     )
 
 
-# --------------------- Run Server --------------------- #
+# --------------------- Entry Point --------------------- #
 if __name__ == "__main__":
-    import os
-
-    port = int(os.environ.get("PORT", 7860))
+    port = int(os.environ.get("PORT", 8080))  # Railway sets this automatically
+    print(f"🚀 Running on port {port} ...")
     app.run(host="0.0.0.0", port=port, debug=False)
