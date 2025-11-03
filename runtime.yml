@@ -1,8 +1,0 @@
-services:
-  - type: web
-    name: anemia-classifier
-    env: python
-    python:
-      version: 3.9.18
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
