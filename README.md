@@ -1,9 +1,9 @@
 ---
-title: Anemia Classifier
-emoji: 🚀
-colorFrom: green
+title: Anemia Classification
+emoji: 🩸
+colorFrom: blue
 colorTo: pink
-sdk: static
+sdk: docker
 pinned: false
 license: mit
 ---
