@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Anemia Classification System</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .loading {
+        display: none;
+      }
+      .parameter-info {
+        font-size: 0.875rem;
+        color: #6c757d;
+      }
+      .normal-range {
+        color: #28a745;
+        font-weight: 500;
+      }
+      .abnormal-range {
+        color: #dc3545;
+        font-weight: 500;
+      }
+      .confidence-bar {
+        height: 20px;
+        background: #e9ecef;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 5px;
+      }
+      .confidence-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #28a745, #007bff);
+        transition: width 0.5s ease;
+      }
+      .card {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border: none;
+        border-radius: 10px;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 25px;
+        padding: 12px 30px;
+        font-weight: 600;
+      }
+
+      /* ✅ Remove red alert outlines on invalid input */
+      input:invalid,
+      input:focus:invalid,
+      select:invalid,
+      select:focus:invalid {
+        border-color: #ced4da !important;
+        box-shadow: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-4">
+      <!-- Header -->
+      <div class="text-center mb-4">
+        <h1 class="display-4">🩸 Anemia Classification System</h1>
+        <p class="lead">
+          AI-powered classification of anemia types using Complete Blood Count
+          parameters
+        </p>
+      </div>
+
+      <!-- Removed ML model status section -->
+
+      <div class="row">
+        <!-- Input Form -->
+        <div class="col-lg-6">
+          <div class="card">
+            <div class="card-header bg-primary text-white">
+              <h5 class="mb-0">📋 Patient Parameters</h5>
+            </div>
+            <div class="card-body">
+              <form id="prediction-form" novalidate>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="Age" class="form-label fw-bold">Age</label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="Age"
+                        name="Age"
+                        step="1"
+                        min="0"
+                        max="120"
+                        required
+                      />
+                      <div class="parameter-info">Patient age in years</div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="Sex" class="form-label fw-bold">Sex</label>
+                      <select class="form-control" id="Sex" name="Sex" required>
+                        <option value="">Select Gender</option>
+                        <option value="0">Female</option>
+                        <option value="1">Male</option>
+                      </select>
+                      <div class="parameter-info">Biological sex</div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="RBC" class="form-label fw-bold"
+                        >RBC Count</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="RBC"
+                        name="RBC"
+                        step="0.1"
+                        min="1"
+                        max="10"
+                        required
+                      />
+                      <div class="parameter-info">
+                        Normal range:
+                        <span class="normal-range"
+                          >4.0 - 5.5 million cells/μL</span
+                        >
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="HGB" class="form-label fw-bold"
+                        >Hemoglobin (HGB)</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="HGB"
+                        name="HGB"
+                        step="0.1"
+                        min="5"
+                        max="20"
+                        required
+                      />
+                      <div class="parameter-info">
+                        Normal range:
+                        <span class="normal-range">12.0 - 16.0 g/dL</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="PCV" class="form-label fw-bold"
+                        >Packed Cell Volume (PCV)</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="PCV"
+                        name="PCV"
+                        step="0.1"
+                        min="20"
+                        max="60"
+                        required
+                      />
+                      <div class="parameter-info">
+                        Normal range:
+                        <span class="normal-range">37.0 - 47.0%</span>
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="MCV" class="form-label fw-bold"
+                        >Mean Corpuscular Volume (MCV)</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="MCV"
+                        name="MCV"
+                        step="0.1"
+                        min="50"
+                        max="120"
+                        required
+                      />
+                      <div class="parameter-info">
+                        Normal range:
+                        <span class="normal-range">80.0 - 100.0 fL</span>
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="MCHC" class="form-label fw-bold"
+                        >Mean Corpuscular Hemoglobin Concentration (MCHC)</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="MCHC"
+                        name="MCHC"
+                        step="0.1"
+                        min="25"
+                        max="40"
+                        required
+                      />
+                      <div class="parameter-info">
+                        Normal range:
+                        <span class="normal-range">32.0 - 36.0 g/dL</span>
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <label for="RDW" class="form-label fw-bold"
+                        >Red Cell Distribution Width (RDW)</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="RDW"
+                        name="RDW"
+                        step="0.1"
+                        min="10"
+                        max="20"
+                        required
+                      />
+                      <div class="parameter-info">
+                        Normal range:
+                        <span class="normal-range">11.5 - 14.5%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 mt-3">
+                  🎯 Classify Anemia
+                </button>
+              </form>
+
+              <!-- Loading Indicator -->
+              <div id="loading" class="loading text-center mt-4">
+                <div
+                  class="spinner-border text-primary"
+                  style="width: 3rem; height: 3rem"
+                  role="status"
+                >
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3 fs-5">Analyzing blood parameters...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="col-lg-6">
+          <div class="card h-100">
+            <div class="card-header bg-success text-white">
+              <h5 class="mb-0">📊 Prediction Results</h5>
+            </div>
+            <div class="card-body">
+              <div id="result" style="display: none">
+                <div class="text-center mb-4">
+                  <h4 id="prediction-text" class="fw-bold"></h4>
+                </div>
+
+                <div id="confidence-scores" class="mb-4">
+                  <h6>Confidence Scores:</h6>
+                  <div id="confidence-bars"></div>
+                </div>
+
+                <div id="warnings" class="mb-4"></div>
+
+                <div id="model-info" class="mt-4 p-3 bg-light rounded">
+                  <h6>Model Information</h6>
+                  <small class="text-muted" id="model-metadata"></small>
+                </div>
+              </div>
+
+              <div
+                id="error"
+                class="alert alert-danger mt-3"
+                style="display: none"
+              ></div>
+
+              <div id="default-state" class="text-center text-muted">
+                <div class="py-5">
+                  <span style="font-size: 4rem">🔬</span>
+                  <h5 class="mt-3">Enter Patient Parameters</h5>
+                  <p>
+                    Fill out the form to get an AI-powered anemia classification
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Information Section -->
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header bg-info text-white">
+              <h5 class="mb-0">ℹ️ About This System</h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <h6>Supported Conditions</h6>
+                  <ul>
+                    <li>
+                      <strong>Anemia Types:</strong> Microcytic, Normocytic,
+                      Macrocytic
+                    </li>
+                    <li><strong>Severity Levels:</strong> Moderate, Severe</li>
+                    <li>
+                      <strong>Blood Disorders:</strong> Thalassemia, Iron
+                      Deficiency, Aplastic Anemia
+                    </li>
+                  </ul>
+                </div>
+                <div class="col-md-6">
+                  <h6>How It Works</h6>
+                  <p>
+                    This system uses advanced machine learning algorithms
+                    trained on clinical data to classify anemia types based on
+                    standard Complete Blood Count (CBC) parameters.
+                  </p>
+                  <div class="alert alert-warning">
+                    <strong>Note:</strong> This tool is for educational and
+                    research purposes. Always consult healthcare professionals
+                    for medical diagnosis.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById("prediction-form")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const formData = new FormData(this);
+          const data = Object.fromEntries(formData.entries());
+
+          data.Age = parseFloat(data.Age);
+          data.Sex = parseInt(data.Sex);
+          data.RBC = parseFloat(data.RBC);
+          data.HGB = parseFloat(data.HGB);
+          data.PCV = parseFloat(data.PCV);
+          data.MCV = parseFloat(data.MCV);
+          data.MCHC = parseFloat(data.MCHC);
+          data.RDW = parseFloat(data.RDW);
+
+          document.getElementById("loading").style.display = "block";
+          document.getElementById("result").style.display = "none";
+          document.getElementById("default-state").style.display = "none";
+          document.getElementById("error").style.display = "none";
+
+          fetch("/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              document.getElementById("loading").style.display = "none";
+
+              if (data.error) {
+                document.getElementById("error").style.display = "block";
+                document.getElementById("error").textContent = data.error;
+                document.getElementById("default-state").style.display =
+                  "block";
+              } else {
+                document.getElementById(
+                  "prediction-text"
+                ).textContent = `Diagnosis: ${data.prediction}`;
+
+                if (data.confidence_scores) {
+                  let confidenceHTML = "";
+                  for (const [condition, score] of Object.entries(
+                    data.confidence_scores
+                  )) {
+                    const percentage = (score * 100).toFixed(1);
+                    const isPrediction = condition === data.prediction;
+                    confidenceHTML += `
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="${
+                        isPrediction ? "fw-bold text-primary" : ""
+                      }">${condition}</span>
+                      <span class="${
+                        isPrediction ? "fw-bold text-primary" : ""
+                      }">${percentage}%</span>
+                    </div>
+                    <div class="confidence-bar mb-3">
+                      <div class="confidence-fill" style="width: ${percentage}%"></div>
+                    </div>`;
+                  }
+                  document.getElementById("confidence-bars").innerHTML =
+                    confidenceHTML;
+                }
+
+                if (data.model_metadata) {
+                  const metadata = data.model_metadata;
+                  document.getElementById(
+                    "model-metadata"
+                  ).textContent = `Version ${metadata.version} | ${metadata.features_used.length} parameters analyzed`;
+                }
+
+                document.getElementById("result").style.display = "block";
+              }
+            })
+            .catch((error) => {
+              document.getElementById("loading").style.display = "none";
+              document.getElementById("error").style.display = "block";
+              document.getElementById("error").textContent =
+                "Network error: " + error.message;
+              document.getElementById("default-state").style.display = "block";
+            });
+        });
+    </script>
+  </body>
+</html>
