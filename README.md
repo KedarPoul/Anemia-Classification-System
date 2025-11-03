@@ -1,11 +1,10 @@
 ---
 title: Anemia Classification
 emoji: 🩸
-colorFrom: blue
+colorFrom: red
 colorTo: pink
 sdk: docker
 pinned: false
 license: mit
+app_file: app.py
 ---
-
-Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
