@@ -1,3 +1,3 @@
 
 
-Check out the configuration reference at [https://huggingface.co/docs/hub/spaces-config-reference](https://kedarpoul-anemia-classification.hf.space/)
+Check it out at [https://huggingface.co/docs/hub/spaces-config-reference](https://kedarpoul-anemia-classification.hf.space/)
